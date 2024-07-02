@@ -370,6 +370,11 @@ header {
     text-align: center;
 }
 
+.image-reel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+
 
 .portfolio {
     display: grid;
