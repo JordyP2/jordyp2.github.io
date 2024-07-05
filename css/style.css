@@ -302,12 +302,16 @@ header {
 }
 
 .services {
-    margin-bottom: 4em;
+    display: flex;
+    justify-content: space-around;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .service {
-    max-width: 500px;
-    margin: 0 auto;
+    max-width: 30%;
+    text-align: center;
 }
 
 @media (min-width: 800px) {
