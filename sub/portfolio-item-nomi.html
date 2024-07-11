@@ -43,12 +43,13 @@
     <iframe width="100%" height="630" src="https://www.youtube.com/embed/Lo9Jq3Ubm3E?si=tKTQusPfWX_7zZZL" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
     <p>Augmented Reality was achieved in this project through the usage of the ARFoundation Toolkit within Unity.</p>
 
+    <br style="height: 50px;">
+
     <div class="code-snippet">
-        <h3>How did I do it?</h3>
-        <p>
-        This C# code is for augmented reality (AR) image recognition using Unity's ARFoundation. It initializes AR tracked images and manages their visibility and interactions. When an image is detected, it updates the position and state of associated prefabs, ensuring only one object is visible at a time. The code also handles enabling and disabling event listeners for image tracking changes.</p>
+        <h3>How I did it</h3>
+        <p>The C# code is for an augmented reality (AR) image recognition application using Unity's ARFoundation. It initializes AR tracked images and manages their visibility and interactions. When an image is detected, it updates the position and state of associated prefabs, ensuring only one object is visible at a time. The code also handles enabling and disabling event listeners for image tracking changes.</p>
         
-        <p><strong>Awake Method: </strong> Initializes the ARTrackedImageManager and instantiates the placeable prefabs at the start of the session.</p>
+        <p><strong>Awake Method: </strong>Initializes the ARTrackedImageManager and instantiates the placeable prefabs at the start of the session.</p>
         <pre><code class="language-csharp">
 private void Awake()
 {
@@ -64,7 +65,8 @@ private void Awake()
 }
         </code></pre>
 
-        <p> <strong>OnEnable and OnDisable Methods</strong> Handles subscribing and unsubscribing to the tracked images changed event.</p>
+        
+        <p><strong>OnEnable and OnDisable Methods: </strong>Handles subscribing and unsubscribing to the tracked images changed event.</p>
         <pre><code class="language-csharp">
 private void OnEnable()
 {
@@ -78,7 +80,7 @@ private void OnDisable()
         </code></pre>
 
         
-        <p><strong>OnImageChanged Method</strong>Handles the responding to detected images and notifies events whenever an image is added, updated, or removed.</p>
+        <p><strong>OnImageChanged Method: </strong>Handles the responding to detected images and notifies events whenever an image is added, updated, or removed.</p>
         <pre><code class="language-csharp">
 private void OnImageChanged(ARTrackedImagesChangedEventArgs args)
 {
@@ -98,7 +100,7 @@ private void OnImageChanged(ARTrackedImagesChangedEventArgs args)
         </code></pre>
 
         
-        <p><strong>UpdateImage Method</strong>Updates the position and visibility of the prefabs based on the tracked image.</p>
+        <p><strong>UpdateImage Method: </strong>Updates the position and visibility of the prefabs based on the tracked image.</p>
         <pre><code class="language-csharp">
 private void UpdateImage(ARTrackedImage trackedImage)
 {
