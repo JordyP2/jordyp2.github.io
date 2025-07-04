@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jordy Priessen Portfolio Website</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css"
+          integrity="sha256-46qynGAkLSFpVbEBog43gvNhfrOj+BmwXdxFgVK/Kvc=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400,900|Source+Sans+Pro:300,900&display=swap">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism-okaidia.css">
+    <script src="https://kit.fontawesome.com/e55f6d8464.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<header>
+    <button class="nav-toggle" aria-label="toggle navigation">
+        <span class="hamburger"></span>
+    </button>
+    <nav class="nav">
+        <ul class="nav__list">
+            <li class="nav__item"> <a href="../index.html" class="nav__link">Home</a></li>
+            <li class="nav__item"> <a href="../index.html#services" class="nav__link">My Services</a></li>
+            <li class="nav__item"> <a href="../index.html#about" class="nav__link">About me</a></li>
+            <li class="nav__item"> <a href="../index.html#work" class="nav__link">My Work</a></li>
+        </ul>
+    </nav>
+</header>
+
+<section class="intro">
+    <h1 class="section__title section__title--intro">
+        Circuit <strong>Outlaws</strong>
+    </h1>
+    <p class="section__subtitle section__subtitle--intro"></p>
+    <img src="../img/CircuitOutlaws.png" alt="A picture of Portfolio Item CircuitOutlaws" class="intro__img">
+</section>
+
+<div class="portfolio-item-individual">
+    <p>Circuit Outlaws is a simple passion project where I aimed to practice the development of a full-stack application/game, while practicing with many different design patterns.</p>
+    <p>The gameplay of this game is simple: just race through an oval for 3 laps as fast as possible to recieve an entry in the leaderboards.</p>
+    <p>Everything is realised, from the gameplay to the login system in the front-end that is required to login with to check the leaderboards or start the race, to a full backend that hosts the leaderboard and users. All while making the front-end request and post content through API and SignalR</p>
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/FGNQow3qaZk?si=fFrYipTtub3wwXJR" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <p>Augmented Reality was achieved in this project through the usage of the ARFoundation Toolkit within Unity.</p>
+
+    <br style="height: 50px;">
+
+    <div class="code-snippet">
+        <h3>How I did it</h3>
+        <p><strong>GameManager.cs: </strong>Singleton pattern to have a Sole instance that manages game logic within the game scene.</p>
+        <pre><code class="language-csharp">
+///
+/// Singleton GameManager manages the state of the race and tracks game logic,
+/// like checkpoints, laps, countdown and the race-timer.
+///
+
+public class GameManager : MonoBehaviour
+{
+    // Singleton instance
+    public static GameManager Instance { get; private set; }
+
+    // Trackname of current race
+    private string currentTrackName = "Beta";
+    public string CurrentTrackName => currentTrackName;
+
+    // Countdown-Settings
+    private int countdownTime = 3;
+    public int CountdownTime => countdownTime;
+
+    // List van all registered checkpoints in de correct order.
+    [Header("Checkpoints")]
+    [SerializeField] private List<Checkpoint> checkpoints = new List<Checkpoint>();
+    [SerializeField] private int currentCheckpointIndex = 0;
+    [SerializeField] private int nextCheckpointIndex = 1;
+
+    public List<Checkpoint> Checkpoints => checkpoints;
+
+    // Settings for amount of required laps
+    [Header("Race Settings")]
+    [SerializeField] private int lapsRequired;
+
+    // Tracking current lap
+    [Header("Race State")]
+    [SerializeField] private int currentLap = 1;
+    public int CurrentLap => currentLap;
+
+    [Header("Timer")]
+    [SerializeField] private float raceTimer = 0;
+    public float RaceTimer => raceTimer;
+
+    public bool LastCheckpointWasReached => nextCheckpointIndex == 0;
+
+    public int CurrentCheckpointIndex => currentCheckpointIndex;
+
+
+    // Current state of the game through state pattern
+    private IRaceState currentState;
+    public IRaceState State => currentState;
+    private RaceSubject raceSubject = new RaceSubject();
+    public RaceSubject RaceSubject => raceSubject;
+
+    private CheckpointValidationContext checkpointValidator = new CheckpointValidationContext();
+
+    public bool RaceStarted => currentState is RacingState;
+    public bool RaceFinished => currentState is FinishedState;
+    public bool IsCountingDown => currentState is CountdownState;
+
+
+    /// <summary>
+    /// Wordt aangeroepen voordat Start(). Zorgt ervoor dat slechts één GameManager bestaat.
+    /// </summary>
+    private void Awake()
+    {
+        // Singleton-initialisatie
+        if (Instance == null || Instance.Equals(null))
+        {
+            Instance = this;
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        // Set stragegy for checkpoint validation
+        checkpointValidator.SetStrategy(new SequentialCheckpointValidationStrategy(), checkpoints);
+
+        // React to changing scene
+        SceneManager.sceneLoaded += SceneLoaded;
+    }
+
+
+    // Start race upon loading scene
+    private void SceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "RaceScene")
+        {
+            Debug.Log("RACE SCENE LOADED");
+            StartCountdown();
+        }
+    }
+
+    private void Update()
+    {
+        // Only update timer when race is going
+        if (currentState is RacingState)
+            raceTimer += Time.deltaTime;
+
+        // Update logic for current state (State Pattern)
+        currentState?.UpdateState(this);
+
+        // Inform observers (Observer Pattern)
+        NotifyRaceUpdate();
+    }
+
+    private void StartCountdown()
+    {
+        SetState(new CountdownState());
+    }
+
+
+    public void StartRace()
+    {
+        raceTimer = 0f;
+        currentLap = 1;
+        nextCheckpointIndex = 1;
+        SetState(new RacingState());
+    }
+
+    public void FinishRace()
+    {
+        Debug.Log("RACE FINISHED!");
+        SetState(new FinishedState());
+    }
+
+    public void SetState(IRaceState newState)
+    {
+        currentState = newState;
+        currentState?.EnterState(this);
+    }
+
+    public void ResetRace()
+    {
+        SetState(new CountdownState());
+        raceTimer = 0;
+        currentLap = 1;
+        nextCheckpointIndex = 1;
+    }
+
+    // Check if player reaches correct checkpoint
+    public void OnCheckpointReached(Checkpoint checkpoint)
+    {
+        if (checkpointValidator.Validate(checkpoint, nextCheckpointIndex))
+        {
+            Debug.Log("Correct Checkpoint reached!");
+            currentCheckpointIndex = nextCheckpointIndex;
+            nextCheckpointIndex = (nextCheckpointIndex + 1) % checkpoints.Count;
+        }
+        else
+        {
+            Debug.Log("Wrong checkpoint!");
+        }
+    }
+
+    // move to the next lap if player has correctly reached the last checkpoint.
+    public void OnLapCompleted()
+    {
+        currentLap++;
+        NotifyRaceUpdate();
+
+        if (currentLap > lapsRequired)
+        {
+            currentLap = lapsRequired;
+            FinishRace();
+        }
+    }
+
+    // Collect race-info and notify observers
+    public void NotifyRaceUpdate()
+    {
+        raceSubject.NotifyObservers(new RaceStateData(raceTimer, currentLap, lapsRequired, RaceFinished, CountdownTime));
+    }
+
+    // Coroutine for countdown timer
+    public IEnumerator CountdownCoroutine()
+    {
+        countdownTime = 3;
+
+        while (countdownTime > 0)
+        {
+            Debug.Log($"CountdownTime: {countdownTime}");
+            NotifyRaceUpdate();
+            yield return new WaitForSeconds(1f);
+            countdownTime--;
+        }
+
+        NotifyRaceUpdate();
+        StartRace();
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= SceneLoaded;
+    }
+}
+
+        </code></pre>
+                <p><strong>SequentialCheckpointValidationStrategy: </strong> Strategy to have checkpoints in a sequence and validate them in sequence order.</p>
+
+        <pre><code class="language-csharp">
+public class SequentialCheckpointValidationStrategy : ICheckpointValidationStrategy
+{
+    private List<Checkpoint> checkpoints;
+    public void Initialize(List<Checkpoint> checkpoints)
+    {
+        this.checkpoints = checkpoints;
+    }
+
+    public bool ValidateCheckpoint(Checkpoint checkpoint, int nextExpectedIndex)
+    {
+        return checkpoints != null && checkpoints[nextExpectedIndex] == checkpoint;
+    }
+}
+        </code></pre>
+
+        <p><strong>LeaderboardObserver: </strong> Observer that submits time to the leaderboard when the race ends.</p>
+        <pre><code class="language-csharp">
+            /// <summary>
+/// Observer that submits time to the leaderbaords when the race ends.
+/// </summary>
+public class LeaderboardObserver : MonoBehaviour, IRaceObserver
+{
+    private bool hasSubmittedTime = false;
+
+    public void OnRaceUpdated(RaceStateData state)
+    {
+        // Only submit time when the race has ended.
+        if (state.RaceFinished && !hasSubmittedTime)
+        {
+            string username = UserManager.Instance.CurrentUser.username;
+            string trackName = GameManager.Instance.CurrentTrackName;
+            float time = state.Timer;
+
+            // Submit tijd naar backend zodra race is geëindigd
+            _ = LeaderboardClient.Instance.SubmitTime(trackName, username, time);
+
+            hasSubmittedTime = true;
+        }
+    }
+
+    private void Start()
+    {
+        // Register this observer once created
+        GameManager.Instance.RaceSubject.RegisterObserver(this);
+    }
+
+    private void OnDestroy()
+    {
+        // Unregister this observer upon destroying
+        GameManager.Instance?.RaceSubject?.UnregisterObserver(this);
+    }
+}
+        </code></pre>
+
+    <p><strong>IRaceState: </strong> State Pattern to determine the state of the game(race).</p>
+    <pre><code class="language-csharp"></code>
+        // Interface voor de different states of the race
+public interface IRaceState
+{
+    void EnterState(GameManager gameManager); // gets triggered upon entering state
+    void UpdateState(GameManager gameManager); // gets triggered every frame upon active state
+}
+        </code></pre>
+
+
+
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <a href="mailto:vanjordy@live.nl" class="footer__link">vanjordy@live.nl</a>
+    <ul class="social-list">
+        <li class="social-list__item">
+            <a class="social-link__link" href="https://www.facebook.com/jordy.priessen">
+                <i class="fa-brands fa-facebook"></i>
+            </a>
+        </li>
+        <li class="social-list__item">
+            <a class="social-link__link" href="https://wiki.tockdom.com/wiki/Main_Page">
+                <i class="fa-brands fa-wikipedia-w"></i>
+            </a>
+        </li>
+        <li class="social-list__item">
+            <a class="social-link__link" href="https://github.com">
+                <i class="fa-brands fa-github"></i>
+            </a>
+        </li>
+        <li class="social-list__item">
+            <a class="social-link__link" href="https://www.youtube.com/channel/UCoxq1f0aEYj65c_izQnkVtw">
+                <i class="fa-brands fa-youtube"></i>
+            </a>
+        </li>
+    </ul>
+</footer>
+
+<script src="../js/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-csharp.min.js"></script>
+</body>
+</html>
