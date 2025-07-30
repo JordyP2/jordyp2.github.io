@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jordy Priessen Portfolio - Outloop Ping Pong</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400,900|Source+Sans+Pro:300,900&display=swap">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism-okaidia.css">
+    <script src="https://kit.fontawesome.com/e55f6d8464.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<header>
+    <button class="nav-toggle" aria-label="toggle navigation">
+        <span class="hamburger"></span>
+    </button>
+    <nav class="nav">
+        <ul class="nav__list">
+            <li class="nav__item"><a href="../index.html" class="nav__link">Home</a></li>
+            <li class="nav__item"><a href="../index.html#services" class="nav__link">My Services</a></li>
+            <li class="nav__item"><a href="../index.html#about" class="nav__link">About Me</a></li>
+            <li class="nav__item"><a href="../index.html#work" class="nav__link">My Work</a></li>
+        </ul>
+    </nav>
+</header>
+
+<section class="intro">
+    <h1 class="section__title section__title--intro">
+        Outloop <strong>Ping Pong</strong>
+    </h1>
+    <p class="section__subtitle section__subtitle--intro">Local Multiplayer</p>
+    <img src="../img/portfolio-pingpong.png" alt="Outloop Ping Pong Screenshot" class="intro__img">
+</section>
+
+<div class="portfolio-item-individual">
+    <p><strong>Outloop: Ping Pong</strong> is a modular, arcade-style table tennis prototype built in Unity using modern software design principles. This minigame represents one playable activity inside a larger open-world game concept I’m developing titled <em>Outloop</em>.</p>
+    
+    <p>The game supports local multiplayer, charged hits, directional control via analog stick input, and modular gameplay logic using design patterns. The entire gameplay is scalable and cleanly structured for future enhancements like AI opponents or online multiplayer.</p>
+
+    <h3>Core Gameplay Features</h3>
+    <ul>
+        <li>🎮 Full controller support for 2 players (Xbox tested)</li>
+        <li>⚡ Charged hits with variable power and visual feedback</li>
+        <li>↩️ Directional influence based on analog stick input</li>
+        <li>🧠 Modular architecture using <code>Strategy</code> and <code>Command</code> patterns</li>
+    </ul>
+
+    <h3>Gameplay Preview</h3>
+   <iframe width="560" height="315" src="https://www.youtube.com/embed/ROCUmxmkteo?si=C7MXdFfUFkxF4Bka" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+    <br><br>
+
+    <div class="code-snippet">
+        <h3>How I Built It</h3>
+
+        <p><strong>BallController.cs</strong> – Controls the behavior of the ping pong ball, including force application, max speed clamping, and resets.</p>
+        <pre><code class="language-csharp">
+public void Serve(Vector3 direction, float speed)
+{
+    if (isServed) return;
+    rb.useGravity = true;
+    rb.AddForce(direction * speed);
+    isServed = true;
+}
+        </code></pre>
+
+        <p><strong>IBallHitStrategy & SimpleHitStrategy.cs</strong> – Allows different hit types (e.g., lob, curve, smash) to be defined and swapped modularly.</p>
+        <pre><code class="language-csharp">
+public interface IBallHitStrategy
+{
+    void ApplyHit(Rigidbody ballRb, Transform paddle, float charge, float inputDir);
+}
+        </code></pre>
+
+        <p><strong>HitDetector.cs</strong> – Detects input, charge state, and triggers hit logic if the ball is within range.</p>
+        <pre><code class="language-csharp">
+if (isCharging && inRange && InputReleased)
+{
+    float charge = Mathf.Clamp01(chargeTime / maxCharge);
+    hitStrategy.ApplyHit(ballRb, paddleTransform, charge, inputDirection);
+}
+        </code></pre>
+
+        <p><strong>Command Pattern:</strong> InputHandler delegates player input using <code>ICommand</code> implementations like <code>MoveCommand</code>, enabling decoupled, testable player movement logic.</p>
+        <pre><code class="language-csharp">
+public class MoveCommand : ICommand
+{
+    public void Execute(Vector2 input) => paddle.SetDirection(input);
+}
+        </code></pre>
+    </div>
+
+    <br>
+
+    <h3>What’s Next?</h3>
+    <p>This project is being expanded into a modular collection of minigames within the larger <strong>Outloop</strong> universe. The goal is to demonstrate flexible, maintainable systems design within Unity — with gameplay always feeling responsive and fun.</p>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <a href="mailto:vanjordy@live.nl" class="footer__link">vanjordy@live.nl</a>
+    <ul class="social-list">
+        <li class="social-list__item"><a class="social-link__link" href="https://facebook.com/jordy.priessen"><i class="fab fa-facebook"></i></a></li>
+        <li class="social-list__item"><a class="social-link__link" href="https://github.com"><i class="fab fa-github"></i></a></li>
+        <li class="social-list__item"><a class="social-link__link" href="https://www.youtube.com/channel/UCoxq1f0aEYj65c_izQnkVtw"><i class="fab fa-youtube"></i></a></li>
+    </ul>
+</footer>
+
+<script src="../js/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-csharp.min.js"></script>
+</body>
+</html>
